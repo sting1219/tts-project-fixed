@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 텍스트 음성 변환기 (TTS)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full border border-slate-100">
+            <h1 class="text-2xl font-bold text-center mb-2 text-indigo-600">AI 단독 TTS 변환기</h1>
+            <p class="text-sm text-slate-500 text-center mb-6">텍스트를 입력하고 고품질 MP3 음성으로 다운로드하세요.</p>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">변환할 텍스트 (최대 300자)</label>
+                    <textarea id="textInput" rows="5" maxlength="300" 
+                        class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none"
+                        placeholder="목소리로 바꿀 내용을 입력하세요..."></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">목소리 타입 선택</label>
+                    <select id="voiceSelect" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
+                        <option value="alloy">Alloy (부드럽고 균형 잡힌 목소리)</option>
+                        <option value="echo">Echo (선명하고 지적인 목소리)</option>
+                        <option value="fable">Fable (드라마틱하고 흡입력 있는 목소리)</option>
+                        <option value="onyx">Onyx (차분하고 깊은 저음의 남성 목소리)</option>
+                        <option value="nova">Nova (에너지 넘치고 친근한 여성 목소리)</option>
+                        <option value="shimmer">Shimmer (차분하고 전문적인 여성 목소리)</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-100 h-20 flex items-center justify-center rounded-xl border border-dashed border-slate-300 my-2">
+                    <span class="text-xs text-slate-400">[이곳에 에드센스 광고 코드가 들어갑니다]</span>
+                </div>
+
+                <button id="submitBtn" onclick="generateTTS()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-4 px-6 rounded-xl transition duration-200 flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-indigo-100">
+                    <span id="btnText">음성 변환 및 다운로드</span>
+                    <svg id="spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function generateTTS() {
+            const textInput = document.getElementById('textInput');
+            const voiceSelect = document.getElementById('voiceSelect');
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+
+            const text = textInput.value.trim();
+            const voice = voiceSelect.value;
+
+            if (!text) {
+                alert('텍스트를 입력해 주세요!');
+                return;
+            }
+
+            // 로딩 상태 시작
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            btnText.innerText = '오디오 생성 중...';
+            spinner.classList.remove('hidden');
+
+            try {
+                // 클라우드플레어 Pages Functions API 호출
+                const response = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, voice })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '음성 변환에 실패했습니다.');
+                }
+
+                // 바이너리(Blob) 데이터로 음성 파일 수신
+                const blob = await response.blob();
+                
+                // 가상 링크 생성 후 다운로드 트리거
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                // 파일명에 타임스탬프 적용
+                a.download = `tts_${voice}_${Date.now()}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // 메모리 해제 및 가상 태그 제거
+                window.URL.revokeObjectURL(url);
+                a.remove();
+
+            } catch (error) {
+                console.error(error);
+                alert(`오류 발생: ${error.message}`);
+            } finally {
+                // 로딩 상태 해제
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                btnText.innerText = '음성 변환 및 다운로드';
+                spinner.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
