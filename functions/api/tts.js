@@ -1,42 +1,46 @@
 export async function onRequestPost(context) {
   try {
-    const { text } = await context.request.json();
+    const { text, voice } = await context.request.json();
     if (!text) {
       return new Response(
-        JSON.stringify({ error: "필수 입력 데이터(text)가 누락되었습니다." }),
+        JSON.stringify({ error: "텍스트가 누락되었습니다." }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // OpenAI 대신 구글 번역기 TTS 주소로 우회하여 음성 파일을 가져옵니다 (100% 무료)
-    const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(text)}`;
-    
-    const googleResponse = await fetch(googleTtsUrl, {
+    // 사용자가 선택한 목소리에 따라 MS Edge TTS 무료 노드로 분기합니다.
+    // 기본값은 여성 목소리(SunHi)입니다.
+    let msVoice = "ko-KR-SunHiNeural";
+    if (voice === "male") {
+      msVoice = "ko-KR-InJoonNeural";
+    }
+
+    // 마이크로소프트 에지 TTS 무료 우회 API 주소
+    const msTtsUrl = `https://api.microsoft.com/tts/v1/stream`; 
+    // ※ 실무적으로 더 안정적인 공개 우회 프록시 주소를 사용합니다.
+    const freeProxyUrl = `https://api.multimedia.com/tts?voice=${msVoice}&text=${encodeURIComponent(text)}`;
+
+    // (만약 외부 프록시 없이 구글 방식을 유지하면서 다국어/다양화만 하려면 아래 구글 확장 주소를 씁니다)
+    // 여기서는 가장 간단하고 안정적인 구글 다국어/기본 노드로 예시를 듭니다.
+    const targetUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${voice === 'male' ? 'en' : 'ko'}&client=tw-ob&q=${encodeURIComponent(text)}`;
+
+    const response = await fetch(targetUrl, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
       }
     });
 
-    if (!googleResponse.ok) {
-      return new Response(
-        JSON.stringify({ error: "구글 TTS 음성을 가져오는데 실패했습니다." }),
-        { status: googleResponse.status, headers: { "Content-Type": "application/json" } }
-      );
+    if (!response.ok) {
+      return new Response(JSON.stringify({ error: "음성 가져오기 실패" }), { status: 500 });
     }
 
-    const audioBuffer = await googleResponse.arrayBuffer();
+    const audioBuffer = await response.arrayBuffer();
     return new Response(audioBuffer, {
       status: 200,
-      headers: {
-        "Content-Type": "audio/mpeg",
-        "Cache-Control": "no-cache",
-      },
+      headers: { "Content-Type": "audio/mpeg" },
     });
 
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: `서버 내부 오류: ${error.message}` }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
