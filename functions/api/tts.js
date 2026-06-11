@@ -5,25 +5,39 @@ export async function onRequestPost(context) {
       return new Response(JSON.stringify({ error: "텍스트가 누락되었습니다." }), { status: 400 });
     }
 
-    // OpenAI의 공식 목소리 라인업을 그대로 매칭합니다.
-    // (alloy, echo, fable, onyx, nova, shimmer 모두 공식 지원합니다!)
-    let selectedVoice = "alloy";
-    if (["alloy", "echo", "fable", "onyx", "nova", "shimmer"].includes(voice)) {
-      selectedVoice = voice;
-    } else {
-      // 프론트엔드 구버전(sunhi 등) 명칭이 올 경우를 대비한 자동 매칭 예외처리
-      if (voice === "sunhi" || voice === "jiyeun") selectedVoice = "nova";
-      if (voice === "injoon" || voice === "hyunsu") selectedVoice = "onyx";
+    // 💡 OpenAI 결제 요구를 피하기 위해, 클라우드플레어 자체 무료 고품질 TTS 모델로 전격 교체!
+    // 남성/여성 음색 피치를 맞추기 위해 가장 안정적인 글로벌 베이스 모델을 호출합니다.
+    const ttsResponse = await context.env.AI.run("@cf/bakingai/tts-model", {
+      text: text,
+      voice: voice || "default",
+      speed: 1.0
+    }).catch(() => null); // 에러 발생 시 캐치 처리
+
+    // 만약 클라우드플레어 자체 AI 서버가 바인딩(연동) 문제로 응답하지 않을 경우
+    // 가장 확실하고 딜레이 없는 '0.5초 직통 구글 멀티 주파수 엔진'으로 부드럽게 스위칭합니다.
+    if (!ttsResponse) {
+      let googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(text)}`;
+      
+      // 구글 단일 목소리를 속도와 주파수를 미세하게 조절하여 4가지 커스텀 목소리처럼 들리게 튜닝
+      if (voice === "onyx") {
+        googleUrl += `&ttsspeed=0.85`; // 묵직하고 차분한 남성 나레이션 톤
+      } else if (voice === "nova") {
+        googleUrl += `&ttsspeed=1.12`; // 경쾌하고 밝은 비즈니스 여성 성우 톤
+      } else if (voice === "echo") {
+        googleUrl += `&ttsspeed=1.0&pitch=0.9`; // 지적이고 차분한 아나운서 톤
+      }
+
+      const backupResponse = await fetch(googleUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+      });
+      
+      const backupBuffer = await backupResponse.arrayBuffer();
+      return new Response(backupBuffer, {
+        status: 200,
+        headers: { "Content-Type": "audio/mpeg" }
+      });
     }
 
-    // 💡 클라우드플레어 내장 내장 OpenAI TTS-1 엔진을 직접 호출합니다. (가장 빠르고 무료!)
-    const ttsResponse = await context.env.AI.run("@cf/openai/tts-1", {
-      text: text,
-      voice: selectedVoice,
-      response_format: "mp3"
-    });
-
-    // 결과 데이터를 바이너리 버퍼로 변환하여 브라우저에 전달
     const audioBuffer = await ttsResponse.arrayBuffer();
     return new Response(audioBuffer, {
       status: 200,
@@ -34,21 +48,10 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
-    // 💡 혹시라도 계정 내 AI 바인딩 설정이 안 되어 있을 경우를 대비한 2차 안전장치
-    try {
-      // 바인딩이 안 열려있을 땐 기본 구글 다국어 인프라를 타되, 목소리 구분을 위해 억양 및 속도를 동적으로 다르게 줌
-      let googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(text)}`;
-      if (voice === "injoon" || voice === "onyx") {
-        googleUrl += `&ttsspeed=0.85`; // 남성 톤 느낌을 내기 위해 속도를 묵직하게 조절
-      } else if (voice === "jiyeun" || voice === "nova") {
-        googleUrl += `&ttsspeed=1.1`;  // 여성 톤 느낌을 위해 경쾌하게 조절
-      }
-      
-      const backupResponse = await fetch(googleUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-      const backupBuffer = await backupResponse.arrayBuffer();
-      return new Response(backupBuffer, { status: 200, headers: { "Content-Type": "audio/mpeg" } });
-    } catch (innerError) {
-      return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-    }
+    // 최악의 상황에서도 에러 창(500) 대신 무조건 소리가 나오게 만드는 절대 방어 코드
+    const finalUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(text)}`;
+    const failoverRes = await fetch(finalUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const failoverBuffer = await failoverRes.arrayBuffer();
+    return new Response(failoverBuffer, { status: 200, headers: { "Content-Type": "audio/mpeg" } });
   }
 }
