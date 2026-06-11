@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 텍스트 음성 변환기 (TTS)</title>
+    <title>AI 텍스트 음성 변환기 (TTS) - 무료 버전</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
 
     <main class="flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full border border-slate-100">
-            <h1 class="text-2xl font-bold text-center mb-2 text-indigo-600">AI 단독 TTS 변환기</h1>
-            <p class="text-sm text-slate-500 text-center mb-6">텍스트를 입력하고 음성을 먼저 들어보세요.</p>
+            <h1 class="text-2xl font-bold text-center mb-2 text-indigo-600">무료 고품질 TTS 변환기</h1>
+            <p class="text-sm text-slate-500 text-center mb-6">비용 걱정 없이 여러 목소리로 음성을 생성해 보세요.</p>
 
             <div class="space-y-5">
                 <div>
@@ -22,15 +22,17 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">목소리 타입 선택</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">무료 고품질 목소리 선택</label>
                     <select id="voiceSelect" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
-                        <option value="male">한국어 남성 목소리 (신뢰감)</option>
-                        <option value="female">한국어 여성 목소리 (차분함)</option>
+                        <option value="sunhi">선희 (자연스러운 여성 나레이션)</option>
+                        <option value="injoon">인준 (신뢰감 있는 남성 안내방송)</option>
+                        <option value="jiyeun">지연 (부드럽고 친근한 여성 목소리)</option>
+                        <option value="hyunsu">현수 (차분하고 지적인 남성 목소리)</option>
                     </select>
                 </div>
 
                 <div class="bg-slate-100 h-20 flex items-center justify-center rounded-xl border border-dashed border-slate-300 my-2">
-                    <span class="text-xs text-slate-400">[이곳에 애드센스 광고 코드가 들어갑니다]</span>
+                    <span class="text-xs text-slate-400">[이곳에 에드센스 광고 코드가 들어갑니다]</span>
                 </div>
 
                 <button id="submitBtn" onclick="generateTTS()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-4 px-6 rounded-xl transition duration-200 flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-indigo-100">
@@ -56,7 +58,6 @@
     </main>
 
     <script>
-        // 이전 메모리 누수를 방지하기 위한 변수 저장
         let currentAudioUrl = null;
 
         async function generateTTS() {
@@ -66,7 +67,6 @@
             const btnText = document.getElementById('btnText');
             const spinner = document.getElementById('spinner');
             
-            // 플레이어 관련 엘리먼트
             const audioPlayerContainer = document.getElementById('audioPlayerContainer');
             const audioPlayer = document.getElementById('audioPlayer');
             const downloadBtn = document.getElementById('downloadBtn');
@@ -79,17 +79,14 @@
                 return;
             }
 
-            // 새로운 생성 시 기존 플레이어 영역 잠시 숨김
             audioPlayerContainer.classList.add('hidden');
 
-            // 로딩 상태 시작
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
             btnText.innerText = '오디오 생성 중...';
             spinner.classList.remove('hidden');
 
             try {
-                // 클라우드플레어 Pages Functions API 호출
                 const response = await fetch('/api/tts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -97,39 +94,30 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || '음성 변환에 실패했습니다.');
+                    throw new Error('음성 생성 서버 응답에 실패했습니다.');
                 }
 
-                // 바이너리(Blob) 데이터로 음성 파일 수신
                 const blob = await response.blob();
                 
-                // 이전 주소가 남아있다면 메모리 해제
                 if (currentAudioUrl) {
                     window.URL.revokeObjectURL(currentAudioUrl);
                 }
 
-                // 가상 링크 생성
                 currentAudioUrl = window.URL.createObjectURL(blob);
                 
-                // 💡 자동 다운로드 대신 오디오 플레이어에 주소 주입
                 audioPlayer.src = currentAudioUrl;
-                
-                // 다운로드 버튼 활성화 및 파일명 세팅
                 downloadBtn.href = currentAudioUrl;
-                downloadBtn.download = `tts_${voice}_${Date.now()}.mp3`;
+                downloadBtn.download = `free_tts_${voice}_${Date.now()}.mp3`;
 
-                // 오디오 플레이어 영역 스르륵 노출
                 audioPlayerContainer.classList.remove('hidden');
 
             } catch (error) {
                 console.error(error);
                 alert(`오류 발생: ${error.message}`);
             } finally {
-                // 로딩 상태 해제
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-                btnText.innerText = '음성 재생하기';
+                btnText.innerText = '음성 생성하기';
                 spinner.classList.add('hidden');
             }
         }
