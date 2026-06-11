@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 텍스트 음성 변환기 (TTS) - 무료 버전</title>
+    <title>AI 텍스트 음성 변환기 (TTS) - 무료 멀티 버전</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
 
     <main class="flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full border border-slate-100">
-            <h1 class="text-2xl font-bold text-center mb-2 text-indigo-600">무료 고품질 TTS 변환기</h1>
-            <p class="text-sm text-slate-500 text-center mb-6">비용 걱정 없이 여러 목소리로 음성을 생성해 보세요.</p>
+            <h1 class="text-2xl font-bold text-center mb-2 text-indigo-600">무료 다중 TTS 변환기</h1>
+            <p class="text-sm text-slate-500 text-center mb-6">목소리 종류를 변경하여 다양한 버전으로 들어보세요.</p>
 
             <div class="space-y-5">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">변환할 텍스트 (최대 300자)</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">변환할 텍스트</label>
                     <textarea id="textInput" rows="5" maxlength="300" 
                         class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none"
                         placeholder="목소리로 바꿀 내용을 입력하세요..."></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">무료 고품질 목소리 선택</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">무료 스타일 선택 (목소리 교체 가능)</label>
                     <select id="voiceSelect" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
-                        <option value="sunhi">선희 (자연스러운 여성 나레이션)</option>
-                        <option value="injoon">인준 (신뢰감 있는 남성 안내방송)</option>
-                        <option value="jiyeun">지연 (부드럽고 친근한 여성 목소리)</option>
-                        <option value="hyunsu">현수 (차분하고 지적인 남성 목소리)</option>
+                        <option value="sunhi">스타일 A (한국어 표준 여성 톤)</option>
+                        <option value="injoon">스타일 B (글로벌 샤프 남성 톤)</option>
+                        <option value="jiyeun">스타일 C (유럽풍 하이 여성 톤)</option>
+                        <option value="hyunsu">스타일 D (클래식 딥 젠틀 톤)</option>
                     </select>
                 </div>
 
@@ -94,7 +94,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('음성 생성 서버 응답에 실패했습니다.');
+                    throw new Error('음성 생성에 실패했습니다.');
                 }
 
                 const blob = await response.blob();
@@ -107,7 +107,7 @@
                 
                 audioPlayer.src = currentAudioUrl;
                 downloadBtn.href = currentAudioUrl;
-                downloadBtn.download = `free_tts_${voice}_${Date.now()}.mp3`;
+                downloadBtn.download = `free_voice_${voice}_${Date.now()}.mp3`;
 
                 audioPlayerContainer.classList.remove('hidden');
 
