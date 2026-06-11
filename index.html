@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 텍스트 음성 변환기 (TTS) - 100% 무료 한국어판</title>
+    <title>AI 텍스트 음성 변환기 (TTS) - 클라우드 무료 버전</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
 
     <main class="flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full border border-slate-100">
-            <h1 class="text-2xl font-bold text-center mb-2 text-indigo-600">무료 한국어 다중 TTS</h1>
-            <p class="text-sm text-slate-500 text-center mb-6">다양한 한국어 성우 목소리로 음성을 생성해 보세요.</p>
+            <h1 class="text-2xl font-bold text-center mb-2 text-indigo-600">초고속 무료 AI TTS</h1>
+            <p class="text-sm text-slate-500 text-center mb-6">원하는 목소리를 선택하고 대기 시간 없이 바로 들어보세요.</p>
 
             <div class="space-y-5">
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">변환할 텍스트 (최대 300자)</label>
                     <textarea id="textInput" rows="5" maxlength="300" 
                         class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-none"
-                        placeholder="목소리로 바꿀 한국어 내용을 입력하세요..."></textarea>
+                        placeholder="목소리로 바꿀 내용을 입력하세요..."></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">한국어 목소리 선택 (전원 한국어 지원)</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">인공지능 성우 선택 (OpenAI 정식 라인업)</label>
                     <select id="voiceSelect" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white transition">
-                        <option value="sunhi">선희 (차분하고 맑은 여성 나레이션)</option>
-                        <option value="injoon">인준 (신뢰감 있고 또렷한 남성 목소리)</option>
-                        <option value="jiyeun">지연 (밝고 친근한 여성 대화 톤)</option>
-                        <option value="hyunsu">현수 (지적이오 깊이 있는 남성 저음)</option>
+                        <option value="alloy">Alloy (부드럽고 자연스러운 목소리)</option>
+                        <option value="onyx">Onyx (차분하고 깊은 저음의 남성 성우)</option>
+                        <option value="nova">Nova (에너지 넘치고 친근한 여성 성우)</option>
+                        <option value="echo">Echo (선명하고 지적인 나레이션)</option>
                     </select>
                 </div>
 
@@ -107,7 +107,7 @@
                 
                 audioPlayer.src = currentAudioUrl;
                 downloadBtn.href = currentAudioUrl;
-                downloadBtn.download = `free_korean_${voice}_${Date.now()}.mp3`;
+                downloadBtn.download = `ai_voice_${voice}_${Date.now()}.mp3`;
 
                 audioPlayerContainer.classList.remove('hidden');
 
